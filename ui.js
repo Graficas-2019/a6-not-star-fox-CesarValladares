@@ -2,6 +2,8 @@
 
 function initControls()
 {
+    orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+
     $('#spot').ColorPicker({
         color: '#ffffff',
         onShow: function (colpkr) {
