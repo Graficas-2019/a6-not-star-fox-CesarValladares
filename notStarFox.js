@@ -6,11 +6,12 @@ root = null,
 group = null,
 ship = null,
 building= null,
+floor = null,
 directionalLight = null;
 orbitControls = null;
 var object;
 var animator = null;
-loopAnimation = false;
+loopAnimation = true;
 
 // Ship Movement
 var moveForward = false;
@@ -29,6 +30,9 @@ var buildings = [];
 
 var ship_loaded = 0;
 var bool = true;
+
+var floorAnimator = null;
+var animateFloor = true;
 
 var objLoader = null;
 var mtlLoader = null;
@@ -351,13 +355,13 @@ function createScene(canvas)
 
     // Put in a ground plane to show off the lighting
     geometry = new THREE.PlaneGeometry(600, 1000, 50, 50);
-    var mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-    mesh.rotation.x = -Math.PI / 2;
+    floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+    floor.rotation.x = -Math.PI / 2;
 
     // Add the mesh to our group
-    scene.add( mesh );
-    mesh.castShadow = false;
-    mesh.receiveShadow = true;
+    scene.add( floor );
+    floor.castShadow = false;
+    floor.receiveShadow = true;
 
     // Now add the group to our scene
     scene.add( root );
@@ -415,33 +419,6 @@ function createScene(canvas)
 
 }
 
-/*function onDocumentKeyDown(event){
-    var delta = 1;
-    event = event || window.event;
-    var keycode = event.keyCode;
-    console.log(keycode)
-    switch(keycode){
-    case 37 : //left arrow 
-        ship.position.z = ship.position.z + delta;
-        break;
-    case 38 : // up arrow 
-        ship.position.y = ship.position.y + delta;
-        break;
-    case 39 : // right arrow 
-        ship.position.z = ship.position.z - delta;
-        break;
-    case 40 : //down arrow
-        ship.position.y = ship.position.y - delta;
-        break;
-    }
-}
-
-function onDocumentKeyUp(event){
-
-    document.removeEventListener('keydown',onDocumentKeyDown,false);
-}
-*/
-
 function onWindowResize() 
 {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -452,6 +429,28 @@ function onWindowResize()
 
 function playAnimations()
 {
-    animator.start();
+
+
+    if (animateFloor)
+    {
+        floorAnimator = new KF.KeyFrameAnimator;
+        floorAnimator.init({ 
+            interps:
+                [
+                    { 
+                        keys:[0, 1], 
+                        values:[
+                                { x : 0, y : 0 },
+                                { x : 1, y : 0 },
+                                ],
+                        target:floor.material.map.offset
+                    },
+                ],
+            loop: loopAnimation,
+            duration:duration * 1000,
+            easing:TWEEN.Easing.Sinusoidal.In,
+        });
+        floorAnimator.start();
+    }
 }
 
