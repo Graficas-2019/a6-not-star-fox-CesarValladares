@@ -6,12 +6,13 @@ root = null,
 group = null,
 ship = null,
 building= null,
+enemyShip = null,
 floor = null,
 directionalLight = null;
 orbitControls = null;
 var object;
 var animator = null;
-loopAnimation = true;
+var loopAnimation = true;
 
 // Ship Movement
 var moveForward = false;
@@ -52,9 +53,10 @@ function animate() {
 
     seconds = (now - actualTime)/1000
     
-    if (seconds >= 3 ){
+    if (seconds >= 2 ){
  
         cloneObj(); 
+        cloneShip();
         actualTime = now;
     }
     
@@ -72,7 +74,7 @@ function animate() {
 
     for(building_i of buildings){
 
-        building_i.position.x += 1;
+        building_i.position.x += 3;
         
         if (building_i.position.x >=300){
 
@@ -92,7 +94,8 @@ function run()
 
         // Update the animations
         KF.update();
-        
+    
+        floorAnimator.start();
         animate();
 
         // Update the camera controller
@@ -106,11 +109,27 @@ function cloneObj(){
     zPos = Math.floor(Math.random() * 200) - 100  
 
     newBuilding.position.z = zPos;
-    newBuilding.position.x = -250;
+    newBuilding.position.x = -400;
     newBuilding.position.y = 0;
 
     scene.add(newBuilding);
     buildings.push(newBuilding);
+
+}
+
+function cloneShip(){
+
+    var newShip = enemyShip.clone();
+
+    zPos = Math.floor(Math.random() * 200) - 100  
+    yPos = Math.floor(Math.random() * 50) + 50  
+
+    newShip.position.z = zPos;
+    newShip.position.x = -400;
+    newShip.position.y = yPos;
+
+    scene.add(newShip);
+    buildings.push(newShip);
 
 }
 
@@ -232,7 +251,7 @@ function loadBuilding(){
                     building.position.y = -150;
                     building.rotation.y = Math.PI;
                     
-                    scene.add(building);
+                    //scene.add(building);
                 },
                 function ( xhr ) {
 
@@ -254,59 +273,66 @@ function loadBuilding(){
 
 function loadEnemyShip(){
 
-    // if(!objLoader)
+    console.log("Loading enemy")
 
-    //     objLoader = new THREE.OBJLoader();
+        // if(!mtlLoader)
 
-    // objLoader.load(
-    //     'models/Arwing/Arwing_001.obj',
+        //     mtlLoader = new THREE.MTLLoader();
 
-    //     function(object)
-    //     {
-    //         //var texture = new THREE.TextureLoader().load('models/Tie_Fighter/texture.jpg');
-    //         //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-    //         object.traverse( function ( child ) 
-    //         {
-    //             if ( child instanceof THREE.Mesh ) 
-    //             {
-    //                 child.castShadow = true;
-    //                 child.receiveShadow = true;
-    //                 //child.material.map = texture;
-    //                 //child.material.normalMap = normalMap;
-    //             }
-    //         } );
-                    
-    //         ship = object;
-    //         ship.scale.set(5,5,5);
-    //         ship.position.z = 0;
-    //         ship.position.x = 250;
-    //         ship.position.y = 50;
-    //         ship.rotation.y = Math.PI /2;
+        // mtlLoader.load(
+        //     'nodels/Tie_Fighter/Tie_Fighter.mtl',
             
-    //         group.add(ship);
-    //     },
-    //     function ( xhr ) {
+        //     function(materials){
 
-    //         console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        //         materials.preload();
 
-    //         ship_loaded = ( xhr.loaded / xhr.total * 100 )
+            if(!objLoader)
 
-    //         if (ship_loaded >= 100 && bool){
-    //             console.log("controls")
-    //             controls = new THREE.PointerLockControls(group);
-    //             scene.add(controls.getObject());
+                objLoader = new THREE.OBJLoader();
 
-    //             bool = false;
-    //         }
-    
-    //     },
-    //     // called when loading has errors
-    //     function ( error ) {
-    
-    //         console.log( 'An error happened' );
-    
-    //     });
+                //objLoader.setMaterials(materials)
 
+            objLoader.load(
+                'models/Tie_Fighter/Tie_Fighter.obj',
+
+                function(object)
+                {
+                    //var texture = new THREE.TextureLoader().load('models/Tie_Fighter/texture.jpg');
+                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                    object.traverse( function ( child ) 
+                    {
+                        if ( child instanceof THREE.Mesh ) 
+                        {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            //child.material.map = texture;
+                            //child.material.normalMap = normalMap;
+                        }
+                    } );
+                            
+                    enemyShip = object;
+                    enemyShip.scale.set(1,1,1);
+                    enemyShip.position.z = 0;
+                    enemyShip.position.x = 300;
+                    enemyShip.position.y = 50;
+                    enemyShip.rotation.y = Math.PI/2;
+                    
+                    //scene.add(enemyShip);
+                },
+                function ( xhr ) {
+
+                    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                    building_loaded = ( xhr.loaded / xhr.total * 100 )
+            
+                },
+                // called when loading has errors
+                function ( error ) {
+            
+                    console.log( 'An error happened' );
+            
+                });
+        //})
 }
 
 function createScene(canvas) 
@@ -317,6 +343,10 @@ function createScene(canvas)
 
     // Set the viewport size
     renderer.setSize(window.innerWidth -20, window.innerHeight -20);
+    // Turn on shadows
+    renderer.shadowMap.enabled = true;
+    // Options are THREE.BasicShadowMap, THREE.PCFShadowMap, PCFSoftShadowMap
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     // Create a new Three.js scene
     scene = new THREE.Scene();
@@ -334,10 +364,19 @@ function createScene(canvas)
     
     // Add a directional light to show off the object
     directionalLight = new THREE.DirectionalLight( 0xffffff, 1);
+    directionalLight.castShadow = true;
+    directionalLight.position.set(0, 50, 300);
+    root.add(directionalLight);
+
+    // Point light
+    // var pointLight = new THREE.PointLight (0xffffff, 1, 10000);
+    // pointLight.position.set(0, 350, 300);
+    // pointLight.castShadow = true;
+    
+    // scene.add(pointLight);
 
     // Create and add all the lights
-    directionalLight.position.set(2, 2, 2);
-    root.add(directionalLight);
+    
 
     ambientLight = new THREE.AmbientLight ( 0x888888 );
     root.add(ambientLight);
@@ -347,19 +386,19 @@ function createScene(canvas)
     root.add(group);
 
     // Create grass texture map
-    var map = new THREE.TextureLoader().load("images/grass.jpg");
+    var map = new THREE.TextureLoader().load("images/deathstar.jpg");
     map.wrapS = map.wrapT = THREE.RepeatWrapping;
     map.repeat.set(10,10);
 
     var color = 0xffffff;
 
     // Put in a ground plane to show off the lighting
-    geometry = new THREE.PlaneGeometry(600, 1000, 50, 50);
+    geometry = new THREE.PlaneGeometry(800, 1500, 50, 50);
     floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
     floor.rotation.x = -Math.PI / 2;
 
     // Add the mesh to our group
-    scene.add( floor );
+    root.add( floor );
     floor.castShadow = false;
     floor.receiveShadow = true;
 
@@ -370,6 +409,8 @@ function createScene(canvas)
     loadObj();
 
     loadBuilding();
+
+    loadEnemyShip();
 
     var onKeyDown = function ( event ) {
         switch ( event.keyCode ) {
@@ -417,6 +458,24 @@ function createScene(canvas)
     document.addEventListener( 'keydown', onKeyDown, false );
     document.addEventListener( 'keyup', onKeyUp, false );
 
+    // Sky Box
+
+	var imagePrefix = "images/skybox/";
+    //var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
+    var directions  = ["image1", "image2", "image3", "image4", "image5", "image6"];
+	var imageSuffix = ".jpeg";
+	var skyGeometry = new THREE.CubeGeometry( 1500, 1500, 1500 );	
+	
+	var materialArray = [];
+	for (var i = 0; i < 6; i++)
+		materialArray.push( new THREE.MeshBasicMaterial({
+			map: THREE.ImageUtils.loadTexture( imagePrefix + directions[i] + imageSuffix ),
+			side: THREE.BackSide
+		}));
+	var skyMaterial = new THREE.MeshFaceMaterial( materialArray );
+	var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
+	scene.add( skyBox );
+
 }
 
 function onWindowResize() 
@@ -430,7 +489,6 @@ function onWindowResize()
 function playAnimations()
 {
 
-
     if (animateFloor)
     {
         floorAnimator = new KF.KeyFrameAnimator;
@@ -441,16 +499,15 @@ function playAnimations()
                         keys:[0, 1], 
                         values:[
                                 { x : 0, y : 0 },
-                                { x : 1, y : 0 },
+                                { x : -3, y : 0 },
                                 ],
                         target:floor.material.map.offset
                     },
                 ],
             loop: loopAnimation,
-            duration:duration * 1000,
-            easing:TWEEN.Easing.Sinusoidal.In,
+            duration:duration,
         });
-        floorAnimator.start();
+        //floorAnimator.start();
     }
 }
 
