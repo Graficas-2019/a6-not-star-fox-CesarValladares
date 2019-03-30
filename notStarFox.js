@@ -269,6 +269,12 @@ function loadBuilding(){
         } 
     )
 
+    var buildingBBox = new THREE.BoxHelper(building, 0x00ff00)
+    buildingBBox.update();
+    buildingBBox.visible = true;
+
+    var buildingCollider = new THREE.Box3().setFromObject(buildingBBox);
+
 }
 
 function loadEnemyShip(){
@@ -364,16 +370,20 @@ function createScene(canvas)
     
     // Add a directional light to show off the object
     directionalLight = new THREE.DirectionalLight( 0xffffff, 1);
-    directionalLight.castShadow = true;
+    //directionalLight.castShadow = true;
     directionalLight.position.set(0, 50, 300);
     root.add(directionalLight);
 
     // Point light
-    // var pointLight = new THREE.PointLight (0xffffff, 1, 10000);
-    // pointLight.position.set(0, 350, 300);
-    // pointLight.castShadow = true;
+    var pointLight = new THREE.PointLight (0xffffff, 0.5, 10000);
+    pointLight.position.set(350, 350, 300);
+    pointLight.castShadow = true;
+
+    //pointLight.shadow.camera.near = 0;
+    pointLight.shadow.camera.far = 4000;
+    // pointLight.shadow.camera.fov = 10;
     
-    // scene.add(pointLight);
+    scene.add(pointLight);
 
     // Create and add all the lights
     
