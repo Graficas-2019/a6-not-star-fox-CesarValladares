@@ -269,11 +269,11 @@ function loadBuilding(){
         } 
     )
 
-    var buildingBBox = new THREE.BoxHelper(building, 0x00ff00)
-    buildingBBox.update();
-    buildingBBox.visible = true;
+    // var buildingBBox = new THREE.BoxHelper(building, 0x00ff00)
+    // buildingBBox.update();
+    // buildingBBox.visible = true;
 
-    var buildingCollider = new THREE.Box3().setFromObject(buildingBBox);
+    // var buildingCollider = new THREE.Box3().setFromObject(buildingBBox);
 
 }
 
