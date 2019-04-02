@@ -51,8 +51,9 @@ var life = 100;
 
 function start(){
 
-    Game = true;
-    document.getElementById("startButton").innerHTML.disabled = true;
+    if (Game){Game = false}else{Game = true}
+
+    document.getElementById("startButton").disabled = true;
     startedTime = Date.now();
     currentTime = Date.now();
     actualTime = Date.now();
@@ -97,6 +98,7 @@ function animate() {
         if (building_i.position.x >=400){
 
             scene.remove(building_i)
+            buildings.shift();
             
         }
 
@@ -117,6 +119,7 @@ function animate() {
             if (bullet.position.x <= -100){
                 scene.remove(bullet)
                 bullet.inGame = false
+                bullets.shift();
             }
             else if (bullet.inGame != false) {
 
@@ -133,6 +136,8 @@ function animate() {
         
                         scene.remove(building_i)
                         scene.remove(bullet)
+
+                        bullets.shift()
       
                     }
         
@@ -143,23 +148,6 @@ function animate() {
     }  
 }
 
-function ResetGame(){
-
-    for(bullet of bullets){
-        scene.remove(bullet)
-    }
-    for (building_i of buildings){
-        scene.remove(bullets)
-    }
-
-    life = 100;
-
-    bullets = [];
-    buildings = [];
-
-    Game = false;
-
-}
 
 function run()
 {
@@ -177,8 +165,11 @@ function run()
 
             if (elapsedTime >= 60 || life <= 0) {
 
-                ResetGame();
-                document.getElementById("startButton").innerHTML.disabled = true;
+                       
+                life = 100;       
+                score = 0;    
+        
+                Game = false;
                            
             }
 
@@ -190,6 +181,21 @@ function run()
 
             // Update the camera controller
             //orbitControls.update();
+        }
+
+        else if (Game == false) {
+
+            console.log("Borrando", bullets.length, buildings.length)
+
+            document.getElementById("startButton").disabled = false;
+
+            for(bullet of bullets){
+                scene.remove(bullet)
+            }
+            for (building_i of buildings){
+                scene.remove(building_i)
+            }
+
         }
 
 }
@@ -219,7 +225,7 @@ function cloneShip(){
     yPos = Math.floor(Math.random() * 50) + 50  
 
     newShip.position.z = zPos;
-    newShip.position.x = -550;
+    newShip.position.x = -560;
     newShip.position.y = yPos;
     newShip.type = "ship";
 
