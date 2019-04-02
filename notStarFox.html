@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Simple Key Frame Animation</title>
+<title>Not Star Fox Game</title>
 
 <link rel="stylesheet" href="libs/jquery-ui/jquery-ui.css" />
 <link rel="stylesheet" href="libs/colorpicker/css/colorpicker.css" />
@@ -29,6 +29,17 @@
 <script src="libs/controls/controls.js"></script>
 
 <script type="text/javascript">
+
+	function playGame()
+	{
+		$("input[name=start]").click(
+		function() 
+			{
+				start()               
+			}
+		);
+	}
+
 	$(document).ready(
 			function() {
 
@@ -39,6 +50,7 @@
 
 				// initialize the controls
 				// initControls();
+				playGame();
 				
 				// create the animations
 				playAnimations();
@@ -54,6 +66,24 @@
 <body>
 
     <div id="container">
-        <canvas id="webglcanvas" ></canvas>
-    </div>
+		<canvas id="webglcanvas" ></canvas>
+		<div id="title">
+            Invaders
+		</div>
+		<div id ="score">
+			score: 0
+		</div>
+		<div id="timer">
+			time: 60
+		</div>
+		<div id="life">
+			life: 100
+		</div>    
+	</div>
+	<form>
+
+		<input id="startButton" type="button" name="start" value="start"> 
+	
+	</form>
+</body>
 </html>

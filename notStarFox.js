@@ -28,8 +28,10 @@ var controls = null;
 var keyboard = null;
 
 var buildings = [];
+var bullets = [];
 
 var ship_loaded = 0;
+var building_loaded;
 var bool = true;
 
 var floorAnimator = null;
@@ -41,11 +43,23 @@ var mtlLoader = null;
 var duration = 1500; // ms
 var currentTime = Date.now();
 var actualTime = Date.now();
+var startedTime = Date.now();
 
 var score = 0; 
+var Game = false;
+var life = 100;
 
+function start(){
+
+    Game = true;
+    document.getElementById("startButton").innerHTML.disabled = true;
+    startedTime = Date.now();
+    currentTime = Date.now();
+    actualTime = Date.now();
+}
 
 function animate() {
+    
 
     var now = Date.now();
     var delta = now - currentTime;
@@ -63,8 +77,8 @@ function animate() {
     direction.y = Number( moveForward ) - Number( moveBackward );
     direction.z = Number( moveLeft ) - Number( moveRight );
     direction.normalize(); // this ensures consistent movements in all directions
-    if ( moveForward || moveBackward ) velocity.y += direction.y *0.005* delta;
-    if ( moveLeft || moveRight ) velocity.z += direction.z *0.005* delta;
+    if ( moveForward || moveBackward ) velocity.y += direction.y *0.003* delta;
+    if ( moveLeft || moveRight ) velocity.z += direction.z *0.003* delta;
     
     controls.getObject().translateY( velocity.y * delta );
     controls.getObject().translateZ( velocity.z * delta );
@@ -72,34 +86,112 @@ function animate() {
     velocity.y = 0;
     velocity.z = 0;
 
+    ship.collider = new THREE.Box3().setFromObject(ship)
+
     for(building_i of buildings){
 
-        building_i.position.x += 3;
+        building_i.position.x += 4;
+
+        building_i.collider = new THREE.Box3().setFromObject(building_i)
         
-        if (building_i.position.x >=300){
+        if (building_i.position.x >=400){
 
             scene.remove(building_i)
-
+            
         }
+
+        if (ship.collider.intersectsBox(building_i.collider)){
+            
+            life--;
+            document.getElementById("life").innerHTML = "life: "+ life;
+        }
+        
     }
+
+    if (bullets.length > 0){
+
+        for (bullet of bullets){
+
+            bullet.position.x -= 3;
+
+            if (bullet.position.x <= -100){
+                scene.remove(bullet)
+                bullet.inGame = false
+            }
+            else if (bullet.inGame != false) {
+
+                bullet.collider = new THREE.Box3().setFromObject(bullet) 
     
+                for (building_i of buildings){
+        
+                    building_i.collider = new THREE.Box3().setFromObject(building_i);
+        
+                    if (bullet.collider.intersectsBox(building_i.collider) && building_i.type == "ship"){
+
+                        score ++;
+                        document.getElementById("score").innerHTML = "score: " + score;
+        
+                        scene.remove(building_i)
+                        scene.remove(bullet)
+      
+                    }
+        
+                }
+            }
+               
+        }
+    }  
+}
+
+function ResetGame(){
+
+    for(bullet of bullets){
+        scene.remove(bullet)
+    }
+    for (building_i of buildings){
+        scene.remove(bullets)
+    }
+
+    life = 100;
+
+    bullets = [];
+    buildings = [];
+
+    Game = false;
+
 }
 
 function run()
 {
     requestAnimationFrame(function() { run(); });
-    
-        // Render the scene
+
         renderer.render( scene, camera );
-
-        // Update the animations
-        KF.update();
     
-        floorAnimator.start();
-        animate();
+        if (Game){
+            // Render the scene
+            NowTime = Date.now();
+            elapsedTime = (NowTime - startedTime)/1000
+            document.getElementById("timer").innerHTML = 60 - elapsedTime
 
-        // Update the camera controller
-        //orbitControls.update();
+            console.log(elapsedTime)
+
+            if (elapsedTime >= 60 || life <= 0) {
+
+                ResetGame();
+                document.getElementById("startButton").innerHTML.disabled = true;
+                           
+            }
+
+            // Update the animations
+            KF.update();
+        
+            floorAnimator.start();
+            animate();
+
+            // Update the camera controller
+            //orbitControls.update();
+        }
+
 }
 
 function cloneObj(){
@@ -109,9 +201,11 @@ function cloneObj(){
     zPos = Math.floor(Math.random() * 200) - 100  
 
     newBuilding.position.z = zPos;
-    newBuilding.position.x = -400;
+    newBuilding.position.x = -550;
     newBuilding.position.y = 0;
 
+    //newBuilding.collider = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+                    
     scene.add(newBuilding);
     buildings.push(newBuilding);
 
@@ -125,8 +219,9 @@ function cloneShip(){
     yPos = Math.floor(Math.random() * 50) + 50  
 
     newShip.position.z = zPos;
-    newShip.position.x = -400;
+    newShip.position.x = -550;
     newShip.position.y = yPos;
+    newShip.type = "ship";
 
     scene.add(newShip);
     buildings.push(newShip);
@@ -136,7 +231,7 @@ function cloneShip(){
 function loadObj()
 {
 
-    if(!mtlLoader)
+    /*if(!mtlLoader)
 
         mtlLoader = new THREE.MTLLoader();
 
@@ -145,20 +240,20 @@ function loadObj()
         
         function(materials){
 
-            materials.preload();
+            materials.preload();*/
 
             if(!objLoader)
 
                 objLoader = new THREE.OBJLoader();
 
-                objLoader.setMaterials(materials)
+                //objLoader.setMaterials(materials)
 
             objLoader.load(
-                'models/falcon/millenium-falcon.obj',
+                'models/Arwing/Arwing_001.obj',
 
                 function(object)
                 {
-                    var texture = new THREE.TextureLoader().load('models/falcon/falcon.jpg');
+                    //var texture = new THREE.TextureLoader().load('models/falcon/falcon.jpg');
                     //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
                     object.traverse( function ( child ) 
                     {
@@ -166,19 +261,20 @@ function loadObj()
                         {
                             child.castShadow = true;
                             child.receiveShadow = true;
-                            child.material.map = texture;
+                            //child.material.map = texture;
                             //child.material.normalMap = normalMap;
                         }
                     } );
                             
                     ship = object;
-                    ship.scale.set(0.03,0.03,0.03);
+                    ship.scale.set(3,3,3);
                     ship.position.z = 0;
                     ship.position.x = 350;
                     ship.position.y = 50;
                     ship.rotation.y = Math.PI /2;
-                    
+              
                     group.add(ship);
+
                 },
                 function ( xhr ) {
 
@@ -190,7 +286,6 @@ function loadObj()
                         console.log("controls")
                         controls = new THREE.PointerLockControls(group);
                         scene.add(controls.getObject());
-
                         bool = false;
                     }
             
@@ -201,8 +296,7 @@ function loadObj()
                     console.log( 'An error happened' );
             
                 });
-        } 
-    )
+        //})
     
 }
 
@@ -214,7 +308,7 @@ function loadBuilding(){
         mtlLoader = new THREE.MTLLoader();
 
     mtlLoader.load(
-        'models/building2/Building.mtl',
+        'models/tree/Pine_Tree.mtl',
         
         function(materials){
 
@@ -227,7 +321,7 @@ function loadBuilding(){
                 objLoader.setMaterials(materials)
 
             objLoader.load(
-                'models/building2/Building.obj',
+                'models/tree/Pine_Tree.obj',
 
                 function(object)
                 {
@@ -245,7 +339,7 @@ function loadBuilding(){
                     } );
                             
                     building = object;
-                    building.scale.set(0.5,0.5,0.5);
+                    building.scale.set(3,10,3);
                     building.position.z = 0;
                     building.position.x = -250;
                     building.position.y = -150;
@@ -258,7 +352,7 @@ function loadBuilding(){
                     console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
 
                     building_loaded = ( xhr.loaded / xhr.total * 100 )
-            
+
                 },
                 // called when loading has errors
                 function ( error ) {
@@ -267,7 +361,7 @@ function loadBuilding(){
             
                 });
         } 
-    )
+    )   
 
     // var buildingBBox = new THREE.BoxHelper(building, 0x00ff00)
     // buildingBBox.update();
@@ -317,12 +411,12 @@ function loadEnemyShip(){
                     } );
                             
                     enemyShip = object;
-                    enemyShip.scale.set(1,1,1);
+                    enemyShip.scale.set(3,3,3);
                     enemyShip.position.z = 0;
                     enemyShip.position.x = 300;
                     enemyShip.position.y = 50;
                     enemyShip.rotation.y = Math.PI/2;
-                    
+                   
                     //scene.add(enemyShip);
                 },
                 function ( xhr ) {
@@ -339,6 +433,23 @@ function loadEnemyShip(){
             
                 });
         //})
+}
+
+function Shot(){
+
+    console.log(ship.collider.min.y, ship.collider.min.z)
+
+    var material = new THREE.MeshPhongMaterial({color: 0x00ff00 });
+    var geometry = new THREE.CubeGeometry(3, 1, 1);
+    cube = new THREE.Mesh(geometry, material);
+
+    cube.position.y = ship.collider.min.y;
+    cube.position.z = ship.collider.min.z;
+    cube.position.x = ship.collider.min.x;
+
+    bullets.push(cube);
+    scene.add(cube)
+
 }
 
 function createScene(canvas) 
@@ -359,7 +470,7 @@ function createScene(canvas)
 
     // Add  a camera so we can view the scene
     camera = new THREE.PerspectiveCamera( 45, canvas.width / canvas.height, 1, 4000 );
-    camera.position.set(400,50,0);
+    camera.position.set(500,50,0);
     camera.lookAt(new THREE.Vector3(0,50,0))
     scene.add(camera);
 
@@ -460,6 +571,9 @@ function createScene(canvas)
             case 39: // right
             case 68: // d
                 moveRight = false;
+                break;
+            case 32:
+                Shot()
                 break;
         }
     };
