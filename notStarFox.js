@@ -57,6 +57,9 @@ function start(){
     startedTime = Date.now();
     currentTime = Date.now();
     actualTime = Date.now();
+
+    life = 100;
+    score = 0;
 }
 
 function animate() {
